@@ -1,5 +1,6 @@
 package www.cnr7.com;
 
+import org.geotools.xml.xsi.XSISimpleTypes;
 import www.cnr7.com.bean.RadarStation;
 import www.cnr7.com.services.RadarService;
 import www.cnr7.com.services.impl.RadarServiceImpl;
@@ -25,7 +26,7 @@ public class App
         radarService.readDemFile2Grid(new File(elevationPath));
     }
 
-    public static void main( String[] args )
+    public static void main( XSISimpleTypes.String[] args )
     {
         // 2.根据具体的雷达站点画图
         RadarStation radarStation = new RadarStation(115.63,34.407,0d,75000d);

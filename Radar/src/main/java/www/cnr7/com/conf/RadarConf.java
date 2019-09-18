@@ -10,7 +10,7 @@ import java.awt.*;
  **/
 public interface RadarConf {
 
-    public static class Img {
+    public static class MaxElevation {
         // 图片宽度
         public static int width = 1000;
         // 图片高度
