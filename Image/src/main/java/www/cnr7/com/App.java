@@ -1,6 +1,5 @@
 package www.cnr7.com;
 
-
 import www.cnr7.com.bean.TlogP;
 import javax.imageio.ImageIO;
 import java.io.File;

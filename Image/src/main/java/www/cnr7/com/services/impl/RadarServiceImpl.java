@@ -224,6 +224,51 @@ public class RadarServiceImpl implements RadarService {
     }
 
     /**
+     * 计算各个方向半径上的离地高度
+     * @param radarStation
+     * @return
+     */
+    private int[][] calHeight(RadarStation radarStation){
+        int stationLength = (int) (radarStation.getRadius() / RadarConf.Img.dertDistance);
+        double[] lonlat;
+        double stationH = getDem(radarStation.getLon(),radarStation.getLat()) + radarStation.getHeight();
+        double tanValue = Math.tan(Math.toRadians(radarStation.getElevation()));
+        // 离地高度
+        double height = 0;
+        int[][] maxRadius = new int[360][10];
+        for (int i = 0; i < 360; i++) {
+            for (int j = 0; j < stationLength; j++) {
+                lonlat = computerThatLonLat(radarStation.getLon(),radarStation.getLat(),i,(j+1)*RadarConf.Img.dertDistance);
+                height = (j+1)*RadarConf.Img.dertDistance * tanValue + stationH - getDem(lonlat[0],lonlat[1]);
+                if (height < 0){
+                    break;
+                } else if (height < 1){
+                    maxRadius[i][0]++;
+                } else if (height < 2){
+                    maxRadius[i][1]++;
+                } else if (height < 3){
+                    maxRadius[i][2]++;
+                } else if (height < 4){
+                    maxRadius[i][3]++;
+                } else if (height < 5){
+                    maxRadius[i][4]++;
+                } else if (height < 6){
+                    maxRadius[i][5]++;
+                } else if (height < 7){
+                    maxRadius[i][6]++;
+                } else if (height < 8){
+                    maxRadius[i][7]++;
+                } else if (height < 9){
+                    maxRadius[i][8]++;
+                } else {
+                    maxRadius[i][9]++;
+                }
+            }
+        }
+        return maxRadius;
+    }
+
+    /**
      * 获取经纬度点的高程数据
      * @param lon
      * @param lat

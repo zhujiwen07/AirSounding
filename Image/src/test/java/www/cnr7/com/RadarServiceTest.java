@@ -2,6 +2,7 @@ package www.cnr7.com;
 
 import org.junit.Test;
 import www.cnr7.com.bean.RadarStation;
+import www.cnr7.com.conf.RadarConf;
 import www.cnr7.com.services.RadarService;
 import www.cnr7.com.services.impl.RadarServiceImpl;
 
@@ -9,6 +10,8 @@ import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -67,5 +70,30 @@ public class RadarServiceTest {
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    /**
+     * 画高度-面积指数图
+     */
+    @Test
+    public void drawHeightAreaIndex(){
+
+    }
+
+    private void getMaxHeight(RadarStation radarStation){
+        /*ArrayList<Double> maxElevation = new ArrayList();
+        ArrayList<Double> degressList = new ArrayList();
+        int stationLength = (int) (radarStation.getRadius() / RadarConf.Img.dertDistance);
+        double[] lonlat;
+        double stationH = getDem(radarStation.getLon(),radarStation.getLat()) + radarStation.getHeight();
+
+        for (int i = 0; i < 360; i++) {
+            for (int j = 0; j < stationLength; j++) {
+                lonlat = computerThatLonLat(radarStation.getLon(),radarStation.getLat(),i,(j+1)*RadarConf.Img.dertDistance);
+                degressList.add(calElevation((j+1)*RadarConf.Img.dertDistance,getDem(lonlat[0],lonlat[1])-stationH));
+            }
+            maxElevation.add(Collections.max(degressList));
+            degressList.clear();
+        }*/
     }
 }
