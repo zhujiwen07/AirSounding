@@ -83,14 +83,14 @@ public class RadarServiceTest {
     private void getMaxHeight(RadarStation radarStation){
         /*ArrayList<Double> maxElevation = new ArrayList();
         ArrayList<Double> degressList = new ArrayList();
-        int stationLength = (int) (radarStation.getRadius() / RadarConf.Img.dertDistance);
+        int stationLength = (int) (radarStation.getRadius() / RadarConf.MaxElevation.dertDistance);
         double[] lonlat;
         double stationH = getDem(radarStation.getLon(),radarStation.getLat()) + radarStation.getHeight();
 
         for (int i = 0; i < 360; i++) {
             for (int j = 0; j < stationLength; j++) {
-                lonlat = computerThatLonLat(radarStation.getLon(),radarStation.getLat(),i,(j+1)*RadarConf.Img.dertDistance);
-                degressList.add(calElevation((j+1)*RadarConf.Img.dertDistance,getDem(lonlat[0],lonlat[1])-stationH));
+                lonlat = computerThatLonLat(radarStation.getLon(),radarStation.getLat(),i,(j+1)*RadarConf.MaxElevation.dertDistance);
+                degressList.add(calElevation((j+1)*RadarConf.MaxElevation.dertDistance,getDem(lonlat[0],lonlat[1])-stationH));
             }
             maxElevation.add(Collections.max(degressList));
             degressList.clear();

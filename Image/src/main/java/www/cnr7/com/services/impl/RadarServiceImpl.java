@@ -31,15 +31,21 @@ public class RadarServiceImpl implements RadarService {
     public BufferedImage drawRadarMaxElevation(RadarStation radarStation) {
         // 根据雷达站点计算绘图数据
         ArrayList<Double> maxElevation = calMaxElevation(radarStation);
-        /*if (radarStation.getRadius() != 0d){
-            RadarConf.Img.radarRadius = radarStation.getRadius();
-        }*/
-        BufferedImage bufferedImage = new BufferedImage(RadarConf.Img.width, RadarConf.Img.height, BufferedImage.TYPE_INT_ARGB);
+
+        BufferedImage bufferedImage = new BufferedImage(RadarConf.MaxElevation.width, RadarConf.MaxElevation.height, BufferedImage.TYPE_INT_ARGB);
         Graphics2D graphics2D = (Graphics2D) bufferedImage.getGraphics();
         drawBaseMap(graphics2D);
         drawData(graphics2D,maxElevation);
         graphics2D.dispose();
         return bufferedImage;
+    }
+
+    @Override
+    public BufferedImage drawEquivalentRadius(RadarStation radarStation) {
+        // 根据雷达站点数据计算等效半径
+        double[] radius = calEquivalentRadius(radarStation,countHeight(radarStation));
+
+        return null;
     }
 
     @Override
@@ -91,50 +97,50 @@ public class RadarServiceImpl implements RadarService {
      * @param graphics2D
      */
     private void drawBaseMap(Graphics2D graphics2D){
-        int fontSize = RadarConf.Img.font.getSize();
-        int barWidth = (int) (RadarConf.Img.width * RadarConf.Img.barWidth);
-        int barUpperH = (int) (RadarConf.Img.height * RadarConf.Img.upperH);
-        int barDownH = (int) (RadarConf.Img.height * RadarConf.Img.downH);
+        int fontSize = RadarConf.MaxElevation.font.getSize();
+        int barWidth = (int) (RadarConf.MaxElevation.width * RadarConf.MaxElevation.barWidth);
+        int barUpperH = (int) (RadarConf.MaxElevation.height * RadarConf.MaxElevation.upperH);
+        int barDownH = (int) (RadarConf.MaxElevation.height * RadarConf.MaxElevation.downH);
 
         /*// 最小同心圆半径
-        double minRadius = (barDownH - barUpperH) / (double) (RadarConf.Img.elevationValue.length-1);
+        double minRadius = (barDownH - barUpperH) / (double) (RadarConf.MaxElevation.elevationValue.length-1);
         // 圆心坐标
         int circularX = (int) (barWidth + minRadius * 5 + fontSize * 3);
         int circularY = (int) (barUpperH + minRadius * 5);*/
 
-        RadarConf.Img.minRadius = (barDownH - barUpperH) / (double) (RadarConf.Img.elevationValue.length-1);
-        RadarConf.Img.circularX = (int) (barWidth + RadarConf.Img.minRadius * 5 + fontSize * 3);
-        RadarConf.Img.circularY = (int) (barUpperH + RadarConf.Img.minRadius * 5);
+        RadarConf.MaxElevation.minRadius = (barDownH - barUpperH) / (double) (RadarConf.MaxElevation.elevationValue.length-1);
+        RadarConf.MaxElevation.circularX = (int) (barWidth + RadarConf.MaxElevation.minRadius * 5 + fontSize * 3);
+        RadarConf.MaxElevation.circularY = (int) (barUpperH + RadarConf.MaxElevation.minRadius * 5);
 
         // 设置抗锯齿
         graphics2D.setRenderingHint(RenderingHints.KEY_ANTIALIASING,RenderingHints.VALUE_ANTIALIAS_ON);
 
         // 填充画板
         graphics2D.setColor(Color.WHITE);
-        graphics2D.fillRect(0,0,RadarConf.Img.width,RadarConf.Img.height);
+        graphics2D.fillRect(0,0, RadarConf.MaxElevation.width, RadarConf.MaxElevation.height);
 
         graphics2D.setColor(new Color(50, 50, 50));
 
         // 画同心圆以及直线
         for (int i = 0; i < 6; i++) {
-            graphics2D.drawArc((int) (RadarConf.Img.circularX - RadarConf.Img.minRadius * i), (int) (RadarConf.Img.circularY - RadarConf.Img.minRadius * i), (int) (RadarConf.Img.minRadius * i * 2), (int) (RadarConf.Img.minRadius * i * 2), 0, 360);
+            graphics2D.drawArc((int) (RadarConf.MaxElevation.circularX - RadarConf.MaxElevation.minRadius * i), (int) (RadarConf.MaxElevation.circularY - RadarConf.MaxElevation.minRadius * i), (int) (RadarConf.MaxElevation.minRadius * i * 2), (int) (RadarConf.MaxElevation.minRadius * i * 2), 0, 360);
 
             // 弧度
             double radian = Math.toRadians(i * 30);
-            int sint = (int) (RadarConf.Img.minRadius * 5 * Math.sin(radian));
-            int cost = (int) (RadarConf.Img.minRadius * 5 * Math.cos(radian));
-            graphics2D.drawLine(RadarConf.Img.circularX + sint,RadarConf.Img.circularY + cost,RadarConf.Img.circularX - sint,RadarConf.Img.circularY - cost);
+            int sint = (int) (RadarConf.MaxElevation.minRadius * 5 * Math.sin(radian));
+            int cost = (int) (RadarConf.MaxElevation.minRadius * 5 * Math.cos(radian));
+            graphics2D.drawLine(RadarConf.MaxElevation.circularX + sint, RadarConf.MaxElevation.circularY + cost, RadarConf.MaxElevation.circularX - sint, RadarConf.MaxElevation.circularY - cost);
         }
 
-        graphics2D.setFont(RadarConf.Img.font);
+        graphics2D.setFont(RadarConf.MaxElevation.font);
         graphics2D.setColor(Color.BLACK);
 
         // 画图例
         graphics2D.drawLine(barWidth,barUpperH,barWidth,barDownH);
-        for (int i = 0; i < RadarConf.Img.elevationValue.length; i++) {
-            int barH = (int) (barUpperH + RadarConf.Img.minRadius * i);
+        for (int i = 0; i < RadarConf.MaxElevation.elevationValue.length; i++) {
+            int barH = (int) (barUpperH + RadarConf.MaxElevation.minRadius * i);
             graphics2D.drawLine(barWidth - 8,barH,barWidth,barH);
-            graphics2D.drawString(RadarConf.Img.elevationValue[i],barWidth - 8 - fontSize * 2,barH + fontSize / 2);
+            graphics2D.drawString(RadarConf.MaxElevation.elevationValue[i],barWidth - 8 - fontSize * 2,barH + fontSize / 2);
         }
 
         // 画同心圆刻度
@@ -143,30 +149,30 @@ public class RadarServiceImpl implements RadarService {
             int azimuth = i * 30;
             // 弧度
             double radian = Math.toRadians(azimuth);
-            int sint = (int) (RadarConf.Img.minRadius * 5 * Math.sin(radian));
-            int cost = (int) (RadarConf.Img.minRadius * 5 * Math.cos(radian));
+            int sint = (int) (RadarConf.MaxElevation.minRadius * 5 * Math.sin(radian));
+            int cost = (int) (RadarConf.MaxElevation.minRadius * 5 * Math.cos(radian));
             if (i<3){
-                graphics2D.drawString(azimuth + "°",(int) (RadarConf.Img.circularX + sint + (fontSize / 2.0d * Math.sin(radian))),(int) (RadarConf.Img.circularY - cost - (fontSize / 2.0d * Math.cos(radian))));
+                graphics2D.drawString(azimuth + "°",(int) (RadarConf.MaxElevation.circularX + sint + (fontSize / 2.0d * Math.sin(radian))),(int) (RadarConf.MaxElevation.circularY - cost - (fontSize / 2.0d * Math.cos(radian))));
             } else if (i==3){
-                graphics2D.drawString(azimuth + "°",(int) (RadarConf.Img.circularX + sint + (fontSize / 2.0d * Math.sin(radian))),(int) (RadarConf.Img.circularY - cost + (fontSize / 2.0d )));
+                graphics2D.drawString(azimuth + "°",(int) (RadarConf.MaxElevation.circularX + sint + (fontSize / 2.0d * Math.sin(radian))),(int) (RadarConf.MaxElevation.circularY - cost + (fontSize / 2.0d )));
             } else if (i<6){
-                graphics2D.drawString(azimuth + "°",(int) (RadarConf.Img.circularX + sint + (fontSize / 2.0d * Math.sin(radian))),(int) (RadarConf.Img.circularY - cost - (fontSize * Math.cos(radian))));
+                graphics2D.drawString(azimuth + "°",(int) (RadarConf.MaxElevation.circularX + sint + (fontSize / 2.0d * Math.sin(radian))),(int) (RadarConf.MaxElevation.circularY - cost - (fontSize * Math.cos(radian))));
             } else if (i==6){
-                graphics2D.drawString(azimuth + "°",(int) (RadarConf.Img.circularX + sint - fontSize / 2.0d),(int) (RadarConf.Img.circularY - cost + fontSize));
+                graphics2D.drawString(azimuth + "°",(int) (RadarConf.MaxElevation.circularX + sint - fontSize / 2.0d),(int) (RadarConf.MaxElevation.circularY - cost + fontSize));
             } else if (i<9){
-                graphics2D.drawString(azimuth + "°",(int) (RadarConf.Img.circularX + sint + (fontSize / 2.0d * Math.sin(radian)) - fontSize * 2),(int) (RadarConf.Img.circularY - cost - (fontSize * Math.cos(radian))));
+                graphics2D.drawString(azimuth + "°",(int) (RadarConf.MaxElevation.circularX + sint + (fontSize / 2.0d * Math.sin(radian)) - fontSize * 2),(int) (RadarConf.MaxElevation.circularY - cost - (fontSize * Math.cos(radian))));
             } else if (i==9){
-                graphics2D.drawString(azimuth + "°",(int) (RadarConf.Img.circularX + sint + (fontSize / 2.0d * Math.sin(radian)) - fontSize * 2),(int) (RadarConf.Img.circularY - cost + (fontSize / 2.0d )));
+                graphics2D.drawString(azimuth + "°",(int) (RadarConf.MaxElevation.circularX + sint + (fontSize / 2.0d * Math.sin(radian)) - fontSize * 2),(int) (RadarConf.MaxElevation.circularY - cost + (fontSize / 2.0d )));
             } else {
-                graphics2D.drawString(azimuth + "°",(int) (RadarConf.Img.circularX + sint + (fontSize / 2.0d * Math.sin(radian)) - fontSize * 2),(int) (RadarConf.Img.circularY - cost - (fontSize / 2.0d * Math.cos(radian))));
+                graphics2D.drawString(azimuth + "°",(int) (RadarConf.MaxElevation.circularX + sint + (fontSize / 2.0d * Math.sin(radian)) - fontSize * 2),(int) (RadarConf.MaxElevation.circularY - cost - (fontSize / 2.0d * Math.cos(radian))));
             }
         }
 
         // 画标题
         AffineTransform affineTransform = new AffineTransform();
         affineTransform.rotate(Math.toRadians(270), 0, 0);
-        graphics2D.setFont(RadarConf.Img.barNameFont.deriveFont(affineTransform));
-        graphics2D.drawString(RadarConf.Img.barName,barWidth - 8 - fontSize * 3,(int) (barUpperH + RadarConf.Img.minRadius * 6.4));
+        graphics2D.setFont(RadarConf.MaxElevation.barNameFont.deriveFont(affineTransform));
+        graphics2D.drawString(RadarConf.MaxElevation.barName,barWidth - 8 - fontSize * 3,(int) (barUpperH + RadarConf.MaxElevation.minRadius * 6.4));
     }
 
     /**
@@ -182,16 +188,16 @@ public class RadarServiceImpl implements RadarService {
             if (maxElevation.get(i)<0){
                 maxRadius = 0;
             } else if (maxElevation.get(i)<2.5){
-                maxRadius = maxElevation.get(i) / 0.5d * RadarConf.Img.minRadius;
+                maxRadius = maxElevation.get(i) / 0.5d * RadarConf.MaxElevation.minRadius;
             } else {
-                maxRadius = 5 * RadarConf.Img.minRadius;
+                maxRadius = 5 * RadarConf.MaxElevation.minRadius;
             }
             // 弧度
             double radian = Math.toRadians(i);
             int sint = (int) (maxRadius * Math.sin(radian));
             int cost = (int) (maxRadius * Math.cos(radian));
-            xPoints[i] = RadarConf.Img.circularX + sint;
-            yPoints[i] = RadarConf.Img.circularY + cost;
+            xPoints[i] = RadarConf.MaxElevation.circularX + sint;
+            yPoints[i] = RadarConf.MaxElevation.circularY + cost;
         }
         xPoints[360] = xPoints[0];
         yPoints[360] = yPoints[0];
@@ -208,14 +214,14 @@ public class RadarServiceImpl implements RadarService {
     private ArrayList<Double> calMaxElevation(RadarStation radarStation){
         ArrayList<Double> maxElevation = new ArrayList();
         ArrayList<Double> degressList = new ArrayList();
-        int stationLength = (int) (radarStation.getRadius() / RadarConf.Img.dertDistance);
+        int stationLength = (int) (radarStation.getRadius() / RadarConf.MaxElevation.dertDistance);
         double[] lonlat;
         double stationH = getDem(radarStation.getLon(),radarStation.getLat()) + radarStation.getHeight();
 
         for (int i = 0; i < 360; i++) {
             for (int j = 0; j < stationLength; j++) {
-                lonlat = computerThatLonLat(radarStation.getLon(),radarStation.getLat(),i,(j+1)*RadarConf.Img.dertDistance);
-                degressList.add(calElevation((j+1)*RadarConf.Img.dertDistance,getDem(lonlat[0],lonlat[1])-stationH));
+                lonlat = computerThatLonLat(radarStation.getLon(),radarStation.getLat(),i,(j+1)* RadarConf.MaxElevation.dertDistance);
+                degressList.add(calElevation((j+1)* RadarConf.MaxElevation.dertDistance,getDem(lonlat[0],lonlat[1])-stationH));
             }
             maxElevation.add(Collections.max(degressList));
             degressList.clear();
@@ -224,12 +230,12 @@ public class RadarServiceImpl implements RadarService {
     }
 
     /**
-     * 计算各个方向半径上的离地高度
+     * 统计各个方向半径上的离地高度
      * @param radarStation
      * @return
      */
-    private int[][] calHeight(RadarStation radarStation){
-        int stationLength = (int) (radarStation.getRadius() / RadarConf.Img.dertDistance);
+    private int[][] countHeight(RadarStation radarStation){
+        int stationLength = (int) (radarStation.getRadius() / RadarConf.MaxElevation.dertDistance);
         double[] lonlat;
         double stationH = getDem(radarStation.getLon(),radarStation.getLat()) + radarStation.getHeight();
         double tanValue = Math.tan(Math.toRadians(radarStation.getElevation()));
@@ -238,8 +244,8 @@ public class RadarServiceImpl implements RadarService {
         int[][] maxRadius = new int[360][10];
         for (int i = 0; i < 360; i++) {
             for (int j = 0; j < stationLength; j++) {
-                lonlat = computerThatLonLat(radarStation.getLon(),radarStation.getLat(),i,(j+1)*RadarConf.Img.dertDistance);
-                height = (j+1)*RadarConf.Img.dertDistance * tanValue + stationH - getDem(lonlat[0],lonlat[1]);
+                lonlat = computerThatLonLat(radarStation.getLon(),radarStation.getLat(),i,(j+1)* RadarConf.MaxElevation.dertDistance);
+                height = (j+1)* RadarConf.MaxElevation.dertDistance * tanValue + stationH - getDem(lonlat[0],lonlat[1]);
                 if (height < 0){
                     break;
                 } else if (height < 1){
@@ -266,6 +272,27 @@ public class RadarServiceImpl implements RadarService {
             }
         }
         return maxRadius;
+    }
+
+    /**
+     * 根据高度- 面积指数计算等效半径
+     * @param radarStation
+     * @param countMaxRadius
+     */
+    private double[] calEquivalentRadius(RadarStation radarStation, int[][] countMaxRadius){
+        double tanValue = Math.tan(Math.toRadians(radarStation.getElevation()));
+        double[] cr = new double[10];
+        double squrR = 0;
+        for (int i = 0; i < 10; i++) {
+            for (int j = 0; j < 360; j++) {
+                squrR += countMaxRadius[j][i] * countMaxRadius[j][i];
+            }
+            double radius = (i+1) / tanValue;
+            double rate = (squrR * RadarConf.MaxElevation.dertDistance * RadarConf.MaxElevation.dertDistance) / (360 * radius *1000 * radius * 1000);
+            double Rh = Math.sqrt(radius * radius * rate);
+            cr[i] = Rh;
+        }
+        return cr;
     }
 
     /**

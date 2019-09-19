@@ -21,6 +21,13 @@ public interface RadarService {
     public BufferedImage drawRadarMaxElevation(RadarStation radarStation);
 
     /**
+     * 画雷达等效半径图
+     * @param radarStation
+     * @return
+     */
+    public BufferedImage drawEquivalentRadius(RadarStation radarStation);
+
+    /**
      * 读取站点csv数据
      * @param file
      * @param charset
