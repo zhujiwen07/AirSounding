@@ -44,7 +44,9 @@ public class RadarServiceImpl implements RadarService {
     public BufferedImage drawEquivalentRadius(RadarStation radarStation) {
         // 根据雷达站点数据计算等效半径
         double[] radius = calEquivalentRadius(radarStation,countHeight(radarStation));
-
+        for (int i = 0; i < radius.length; i++) {
+            System.out.println(radius[i]);
+        }
         return null;
     }
 
@@ -241,7 +243,7 @@ public class RadarServiceImpl implements RadarService {
         double tanValue = Math.tan(Math.toRadians(radarStation.getElevation()));
         // 离地高度
         double height = 0;
-        int[][] maxRadius = new int[360][10];
+        int[][] maxRadius = new int[360][9];
         for (int i = 0; i < 360; i++) {
             for (int j = 0; j < stationLength; j++) {
                 lonlat = computerThatLonLat(radarStation.getLon(),radarStation.getLat(),i,(j+1)* RadarConf.MaxElevation.dertDistance);
@@ -264,11 +266,12 @@ public class RadarServiceImpl implements RadarService {
                     maxRadius[i][6]++;
                 } else if (height < 8){
                     maxRadius[i][7]++;
-                } else if (height < 9){
+                }  else {
                     maxRadius[i][8]++;
-                } else {
-                    maxRadius[i][9]++;
                 }
+            }
+            for (int j = 1; j < 9; j++) {
+                maxRadius[i][j] += maxRadius[i][j-1];
             }
         }
         return maxRadius;
@@ -281,11 +284,11 @@ public class RadarServiceImpl implements RadarService {
      */
     private double[] calEquivalentRadius(RadarStation radarStation, int[][] countMaxRadius){
         double tanValue = Math.tan(Math.toRadians(radarStation.getElevation()));
-        double[] cr = new double[10];
+        double[] cr = new double[9];
         double squrR = 0;
-        for (int i = 0; i < 10; i++) {
+        for (int i = 0; i < 9; i++) {
             for (int j = 0; j < 360; j++) {
-                squrR += countMaxRadius[j][i] * countMaxRadius[j][i];
+                squrR += (countMaxRadius[j][i] * countMaxRadius[j][i]);
             }
             double radius = (i+1) / tanValue;
             double rate = (squrR * RadarConf.MaxElevation.dertDistance * RadarConf.MaxElevation.dertDistance) / (360 * radius *1000 * radius * 1000);

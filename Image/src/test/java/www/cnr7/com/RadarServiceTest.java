@@ -35,8 +35,21 @@ public class RadarServiceTest {
 
     @Test
     public void test(){
+        // 2.根据具体的雷达站点画图
+        RadarStation radarStation = new RadarStation(115.63,34.407,0d,75000d);
+        BufferedImage bufferedImage = radarService.drawRadarMaxElevation(radarStation);
+        try {
+            ImageIO.write(bufferedImage, "png", new File("E:/Project/2019/9test/test3.png"));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        radarStation.setElevation(2.4);
+        radarService.drawEquivalentRadius(radarStation);
+
+
         // 2.读取雷达站点基础经纬度数据
-        List<RadarStation> radarStations = radarService.readCsvFile2List(new File(stationPath), "GBK");
+        /*List<RadarStation> radarStations = radarService.readCsvFile2List(new File(stationPath), "GBK");
         // 3.根据雷达站点绘制雷达最大仰角图
         for (RadarStation radarStation : radarStations) {
             // 设置雷达扫描半径
@@ -47,7 +60,7 @@ public class RadarServiceTest {
             } catch (IOException e) {
                 e.printStackTrace();
             }
-        }
+        }*/
     }
 
     /**
