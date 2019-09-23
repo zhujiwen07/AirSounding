@@ -15,7 +15,6 @@ import java.awt.image.BufferedImage;
 import java.io.*;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.List;
 
 /**
  * @Author zhujiwen
@@ -149,8 +148,8 @@ public class RadarServiceImpl implements RadarService {
         // 画标题
         AffineTransform affineTransform = new AffineTransform();
         affineTransform.rotate(Math.toRadians(270), 0, 0);
-        graphics2D.setFont(RadarConf.MaxElevation.barNameFont.deriveFont(affineTransform));
-        graphics2D.drawString(RadarConf.MaxElevation.barName,barWidth - 8 - fontSize * 3,(int) (barUpperH + RadarConf.MaxElevation.minRadius * 6.4));
+        graphics2D.setFont(RadarConf.MaxElevation.titleFont.deriveFont(affineTransform));
+        graphics2D.drawString(RadarConf.MaxElevation.title,barWidth - 8 - fontSize * 3,(int) (barUpperH + RadarConf.MaxElevation.minRadius * 6.4));
     }
 
     /**
@@ -324,7 +323,7 @@ public class RadarServiceImpl implements RadarService {
      * @return
      */
     private int[][] calCoverageArea(RadarStation radarStation){
-        int stationLength = (int) (radarStation.getRadius() / RadarConf.MaxElevation.dertDistance);
+        int stationLength = (int) (radarStation.getRadius() / RadarConf.EquivalentRadius.dertDistance);
         double[] lonlat;
         double stationH = getDem(radarStation.getLon(),radarStation.getLat()) + radarStation.getHeight();
         double tanValue = Math.tan(Math.toRadians(radarStation.getElevation()));
@@ -333,8 +332,8 @@ public class RadarServiceImpl implements RadarService {
         int[][] area = new int[360][9];
         for (int i = 0; i < 360; i++) {
             for (int j = 0; j < stationLength; j++) {
-                lonlat = computerThatLonLat(radarStation.getLon(),radarStation.getLat(),i,(j+1)* RadarConf.MaxElevation.dertDistance);
-                height = (j+1) * RadarConf.MaxElevation.dertDistance * tanValue + stationH - getDem(lonlat[0],lonlat[1]);
+                lonlat = computerThatLonLat(radarStation.getLon(),radarStation.getLat(),i,(j+1)* RadarConf.EquivalentRadius.dertDistance);
+                height = (j+1) * RadarConf.EquivalentRadius.dertDistance * tanValue + stationH - getDem(lonlat[0],lonlat[1]);
                 if (height < 0){
                     break;
                 } else if (height < 1000){
@@ -379,7 +378,7 @@ public class RadarServiceImpl implements RadarService {
                 totalArea += areas[j][i];
             }
             // 等效半径（单位：KM）
-            cr[i] = Math.sqrt(totalArea / 360d) * RadarConf.MaxElevation.dertDistance;
+            cr[i] = Math.sqrt(totalArea / 360d) * RadarConf.EquivalentRadius.dertDistance;
         }
         return cr;
     }
