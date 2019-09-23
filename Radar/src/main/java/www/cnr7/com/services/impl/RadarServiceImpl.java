@@ -15,6 +15,7 @@ import java.awt.image.BufferedImage;
 import java.io.*;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.List;
 
 /**
  * @Author zhujiwen
@@ -27,16 +28,41 @@ public class RadarServiceImpl implements RadarService {
     private GridCoverage2D coverage;
 
     @Override
-    public BufferedImage drawRadarMaxElevation(RadarStation radarStation) {
+    public BufferedImage drawRadarMaxElevation(RadarStation radarStation, boolean drawDetails) {
         // 根据雷达站点计算绘图数据
         ArrayList<Double> maxElevation = calMaxElevation(radarStation);
-        /*if (radarStation.getRadius() != 0d){
-            RadarConf.MaxElevation.radarRadius = radarStation.getRadius();
-        }*/
+
         BufferedImage bufferedImage = new BufferedImage(RadarConf.MaxElevation.width, RadarConf.MaxElevation.height, BufferedImage.TYPE_INT_ARGB);
         Graphics2D graphics2D = (Graphics2D) bufferedImage.getGraphics();
+        // 设置抗锯齿
+        graphics2D.setRenderingHint(RenderingHints.KEY_ANTIALIASING,RenderingHints.VALUE_ANTIALIAS_ON);
         drawBaseMap(graphics2D);
         drawData(graphics2D,maxElevation);
+        if (drawDetails){
+            drawMaxElevationDetails(graphics2D,radarStation);
+        }
+        graphics2D.dispose();
+        return bufferedImage;
+    }
+
+    @Override
+    public BufferedImage drawEquivalentRadius(RadarStation radarStation, boolean drawDetails) {
+        // 根据雷达站点数据计算等效半径
+        double[] radius = calEquivalentRadius(radarStation, calCoverageArea(radarStation));
+
+        BufferedImage bufferedImage = new BufferedImage(RadarConf.EquivalentRadius.width, RadarConf.EquivalentRadius.height, BufferedImage.TYPE_INT_ARGB);
+        Graphics2D graphics2D = (Graphics2D) bufferedImage.getGraphics();
+        // 设置抗锯齿
+        graphics2D.setRenderingHint(RenderingHints.KEY_ANTIALIASING,RenderingHints.VALUE_ANTIALIAS_ON);
+        drawCircles(graphics2D,radarStation,radius);
+        drawEquivalentRadiusTitle(graphics2D);
+
+        if (drawDetails){
+            drawEquivalentRadiusDetails(graphics2D,radarStation);
+            drawToolBarWithDetails(graphics2D);
+        }else {
+            drawToolBar(graphics2D);
+        }
         graphics2D.dispose();
         return bufferedImage;
     }
@@ -63,18 +89,9 @@ public class RadarServiceImpl implements RadarService {
         int barUpperH = (int) (RadarConf.MaxElevation.height * RadarConf.MaxElevation.upperH);
         int barDownH = (int) (RadarConf.MaxElevation.height * RadarConf.MaxElevation.downH);
 
-        /*// 最小同心圆半径
-        double minRadius = (barDownH - barUpperH) / (double) (RadarConf.MaxElevation.elevationValue.length-1);
-        // 圆心坐标
-        int circularX = (int) (barWidth + minRadius * 5 + fontSize * 3);
-        int circularY = (int) (barUpperH + minRadius * 5);*/
-
         RadarConf.MaxElevation.minRadius = (barDownH - barUpperH) / (double) (RadarConf.MaxElevation.elevationValue.length-1);
         RadarConf.MaxElevation.circularX = (int) (barWidth + RadarConf.MaxElevation.minRadius * 5 + fontSize * 3);
         RadarConf.MaxElevation.circularY = (int) (barUpperH + RadarConf.MaxElevation.minRadius * 5);
-
-        // 设置抗锯齿
-        graphics2D.setRenderingHint(RenderingHints.KEY_ANTIALIASING,RenderingHints.VALUE_ANTIALIAS_ON);
 
         // 填充画板
         graphics2D.setColor(Color.WHITE);
@@ -168,6 +185,117 @@ public class RadarServiceImpl implements RadarService {
     }
 
     /**
+     * 画同心圆
+     * @param graphics2D
+     * @param radius
+     */
+    private void drawCircles(Graphics2D graphics2D, RadarStation radarStation, double[] radius){
+        // 填充画板
+        graphics2D.setColor(Color.WHITE);
+        graphics2D.fillRect(0,0, RadarConf.EquivalentRadius.width, RadarConf.EquivalentRadius.height);
+        RadarConf.EquivalentRadius.circularX = RadarConf.EquivalentRadius.width / 2;
+        RadarConf.EquivalentRadius.circularY = RadarConf.EquivalentRadius.height / 2;
+        RadarConf.EquivalentRadius.maxRadius = RadarConf.EquivalentRadius.height / 2.0d - RadarConf.EquivalentRadius.height * 0.1d;
+
+        for (int i = radius.length - 1; i >= 0; i--) {
+            graphics2D.setColor(RadarConf.EquivalentRadius.toolBar[i]);
+            int r = (int) Math.round(radius[i] / radarStation.getRadius() * RadarConf.EquivalentRadius.maxRadius);
+            graphics2D.fillOval(RadarConf.EquivalentRadius.circularX - r,RadarConf.EquivalentRadius.circularY - r,2*r,2*r);
+        }
+    }
+
+    /**
+     * 画色标盘
+     * @param graphics2D
+     */
+    private void drawToolBar(Graphics2D graphics2D){
+        int perW = (int) (RadarConf.EquivalentRadius.width * 0.8d / 9d);
+        double h = RadarConf.EquivalentRadius.height * 0.02d;
+        double leftUpperX =  RadarConf.EquivalentRadius.width * 0.1d;
+        double leftUpperY =  RadarConf.EquivalentRadius.height * 0.92d;
+        int fontH = (int)(RadarConf.EquivalentRadius.height * 0.94d + 2 + RadarConf.EquivalentRadius.font.getSize());
+        graphics2D.setFont(RadarConf.EquivalentRadius.font);
+        for (int i = 0; i < RadarConf.EquivalentRadius.toolBar.length; i++) {
+            graphics2D.setColor(Color.BLACK);
+            graphics2D.drawRect((int)(leftUpperX + perW * i),(int)(leftUpperY),(int)(perW),(int)(h));
+            if (i == 8){
+                graphics2D.drawString("≥9 km",(int)(leftUpperX + perW * i + perW * 0.4),fontH);
+            }else {
+                graphics2D.drawString((i+1)+"",(int)(leftUpperX + perW * i + perW * 0.4),fontH);
+            }
+            graphics2D.setColor(RadarConf.EquivalentRadius.toolBar[i]);
+            graphics2D.fillRect((int)(leftUpperX + perW * i) + 1,(int)(leftUpperY) + 1,(int)(perW-1),(int)(h-1));
+        }
+    }
+
+    /**
+     * 画色标盘
+     * @param graphics2D
+     */
+    private void drawToolBarWithDetails(Graphics2D graphics2D){
+        int perW = (int) (RadarConf.EquivalentRadius.width * 0.6d / 9d);
+        double h = RadarConf.EquivalentRadius.height * 0.02d;
+        double leftUpperX =  RadarConf.EquivalentRadius.width * 0.35d;
+        double leftUpperY =  RadarConf.EquivalentRadius.height * 0.92d;
+        int fontH = (int)(RadarConf.EquivalentRadius.height * 0.94d + 2 + RadarConf.EquivalentRadius.font.getSize());
+        graphics2D.setFont(RadarConf.EquivalentRadius.font);
+        for (int i = 0; i < RadarConf.EquivalentRadius.toolBar.length; i++) {
+            graphics2D.setColor(Color.BLACK);
+            graphics2D.drawRect((int)(leftUpperX + perW * i),(int)(leftUpperY),(int)(perW),(int)(h));
+            if (i == 8){
+                graphics2D.drawString("≥9 km",(int)(leftUpperX + perW * i + perW * 0.4),fontH);
+            }else {
+                graphics2D.drawString((i+1)+"",(int)(leftUpperX + perW * i + perW * 0.4),fontH);
+            }
+            graphics2D.setColor(RadarConf.EquivalentRadius.toolBar[i]);
+            graphics2D.fillRect((int)(leftUpperX + perW * i) + 1,(int)(leftUpperY) + 1,(int)(perW-1),(int)(h-1));
+        }
+    }
+
+    /**
+     * 画标题
+     * @param graphics2D
+     */
+    private void drawEquivalentRadiusTitle(Graphics2D graphics2D){
+        int fontSize = RadarConf.EquivalentRadius.titleFont.getSize();
+        graphics2D.setColor(Color.BLACK);
+        graphics2D.setFont(RadarConf.EquivalentRadius.titleFont);
+        int x = (int) ((RadarConf.EquivalentRadius.width - RadarConf.EquivalentRadius.title.length() * fontSize) / 2.0d);
+        int y = (int) (RadarConf.EquivalentRadius.height * 0.1d);
+        graphics2D.drawString(RadarConf.EquivalentRadius.title,x,y - fontSize);
+    };
+
+    /**
+     * 画最大仰角的详情
+     * @param graphics2D
+     * @param radarStation
+     */
+    private void drawMaxElevationDetails(Graphics2D graphics2D, RadarStation radarStation){
+        String details = radarStation.toMaxElevationString();
+        int fontSize = RadarConf.MaxElevation.detailsFont.getSize();
+        graphics2D.setColor(Color.BLACK);
+        graphics2D.setFont(RadarConf.MaxElevation.detailsFont);
+        int x = (int) ((RadarConf.MaxElevation.width - 26 * fontSize) / 2.0d);
+        int y = (int) (RadarConf.MaxElevation.height * 0.1d);
+        graphics2D.drawString(details,x,y - fontSize);
+    }
+
+    /**
+     * 画离地高度分布模拟图详情
+     * @param graphics2D
+     * @param radarStation
+     */
+    private void drawEquivalentRadiusDetails(Graphics2D graphics2D, RadarStation radarStation){
+        int fontSize = RadarConf.EquivalentRadius.detailsFont.getSize();
+        graphics2D.setColor(Color.BLACK);
+        graphics2D.setFont(RadarConf.EquivalentRadius.detailsFont);
+        graphics2D.drawString("雷达仰角：" + radarStation.saveOneBit(radarStation.getElevation(),1) + "°",5,RadarConf.EquivalentRadius.height - (fontSize + 2) * 4);
+        graphics2D.drawString("雷达高度：" + radarStation.getHeight() + "m",5,RadarConf.EquivalentRadius.height - (fontSize + 2) * 3);
+        graphics2D.drawString("扫描半径：" + radarStation.getRadius()/1000d + "km" ,5,RadarConf.EquivalentRadius.height - (fontSize + 2) * 2);
+        graphics2D.drawString("坐标（" + radarStation.saveOneBit(radarStation.getLon(),2) + "," + radarStation.saveOneBit(radarStation.getLat(),2) + "）",5,RadarConf.EquivalentRadius.height - (fontSize + 2) * 1);
+    }
+
+    /**
      * 计算各个方向上的最大仰角
      * @param radarStation
      * @return
@@ -191,17 +319,88 @@ public class RadarServiceImpl implements RadarService {
     }
 
     /**
+     * 计算覆盖面积（公式：Math.pow(j+1,2) - Math.pow(j,2)）
+     * @param radarStation
+     * @return
+     */
+    private int[][] calCoverageArea(RadarStation radarStation){
+        int stationLength = (int) (radarStation.getRadius() / RadarConf.MaxElevation.dertDistance);
+        double[] lonlat;
+        double stationH = getDem(radarStation.getLon(),radarStation.getLat()) + radarStation.getHeight();
+        double tanValue = Math.tan(Math.toRadians(radarStation.getElevation()));
+        // 离地高度
+        double height = 0;
+        int[][] area = new int[360][9];
+        for (int i = 0; i < 360; i++) {
+            for (int j = 0; j < stationLength; j++) {
+                lonlat = computerThatLonLat(radarStation.getLon(),radarStation.getLat(),i,(j+1)* RadarConf.MaxElevation.dertDistance);
+                height = (j+1) * RadarConf.MaxElevation.dertDistance * tanValue + stationH - getDem(lonlat[0],lonlat[1]);
+                if (height < 0){
+                    break;
+                } else if (height < 1000){
+                    area[i][0] += (Math.pow(j+1,2) - Math.pow(j,2));
+                } else if (height < 2000){
+                    area[i][1] += (Math.pow(j+1,2) - Math.pow(j,2));
+                } else if (height < 3000){
+                    area[i][2] += (Math.pow(j+1,2) - Math.pow(j,2));
+                } else if (height < 4000){
+                    area[i][3] += (Math.pow(j+1,2) - Math.pow(j,2));
+                } else if (height < 5000){
+                    area[i][4] += (Math.pow(j+1,2) - Math.pow(j,2));
+                } else if (height < 6000){
+                    area[i][5] += (Math.pow(j+1,2) - Math.pow(j,2));
+                } else if (height < 7000){
+                    area[i][6] += (Math.pow(j+1,2) - Math.pow(j,2));
+                } else if (height < 8000){
+                    area[i][7] += (Math.pow(j+1,2) - Math.pow(j,2));
+                }  else {
+                    area[i][8] += (Math.pow(j+1,2) - Math.pow(j,2));
+                }
+            }
+            for (int j = 1; j < 9; j++) {
+                area[i][j] += area[i][j-1];
+            }
+        }
+        return area;
+    }
+
+    /**
+     * 根据高度- 面积指数计算等效半径（单位：米）
+     * @param radarStation
+     * @param areas
+     */
+    private double[] calEquivalentRadius(RadarStation radarStation, int[][] areas){
+        double[] cr = new double[9];
+        // 矩阵转置求和
+        for (int i = 0; i < 9; i++) {
+            double totalArea = 0;
+            // 累加求和
+            for (int j = 0; j < 360; j++) {
+                totalArea += areas[j][i];
+            }
+            // 等效半径（单位：KM）
+            cr[i] = Math.sqrt(totalArea / 360d) * RadarConf.MaxElevation.dertDistance;
+        }
+        return cr;
+    }
+
+    /**
      * 获取经纬度点的高程数据
      * @param lon
      * @param lat
      * @return
      */
     private double getDem(double lon,double lat){
-        CoordinateReferenceSystem crs = coverage.getCoordinateReferenceSystem2D();
-        DirectPosition position = new DirectPosition2D(crs, lon, lat);
-        int[] results = (int[]) coverage.evaluate(position);
-        results = coverage.evaluate(position, results);
-        return results[0];
+        double h = 0d;
+        try {
+            CoordinateReferenceSystem crs = coverage.getCoordinateReferenceSystem2D();
+            DirectPosition position = new DirectPosition2D(crs, lon, lat);
+            int[] results = (int[]) coverage.evaluate(position);
+            results = coverage.evaluate(position, results);
+            return results[0];
+        } catch (Exception e){
+            return h;
+        }
     }
 
     /**

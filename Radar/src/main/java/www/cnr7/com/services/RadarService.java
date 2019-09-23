@@ -1,6 +1,7 @@
 package www.cnr7.com.services;
 
 import www.cnr7.com.bean.RadarStation;
+
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.util.List;
@@ -17,7 +18,14 @@ public interface RadarService {
      * @param radarStation
      * @return
      */
-    public BufferedImage drawRadarMaxElevation(RadarStation radarStation);
+    public BufferedImage drawRadarMaxElevation(RadarStation radarStation, boolean drawDetails);
+
+    /**
+     * 画雷达等效半径图
+     * @param radarStation
+     * @return
+     */
+    public BufferedImage drawEquivalentRadius(RadarStation radarStation, boolean drawDetails);
 
     /**
      * 读取高程数据
