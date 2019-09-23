@@ -36,16 +36,22 @@ public class RadarServiceTest {
     @Test
     public void test(){
         // 2.根据具体的雷达站点画图
-        RadarStation radarStation = new RadarStation(115.63,34.407,0d,75000d);
-        BufferedImage bufferedImage = radarService.drawRadarMaxElevation(radarStation);
+        RadarStation radarStation = new RadarStation(115.63,34.407,2d,230000d);
+        /*BufferedImage bufferedImage = radarService.drawRadarMaxElevation(radarStation,true);
         try {
-            ImageIO.write(bufferedImage, "png", new File("E:/Project/2019/9test/test3.png"));
+            ImageIO.write(bufferedImage, "png", new File("E:/Project/2019/9test/最大仰角图.png"));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }*/
+
+        radarStation.setElevation(0.5);
+        BufferedImage bufferedImage1 = radarService.drawEquivalentRadius(radarStation,true);
+
+        try {
+            ImageIO.write(bufferedImage1, "png", new File("E:/Project/2019/9test/离地高度分布模拟图.png"));
         } catch (IOException e) {
             e.printStackTrace();
         }
-
-        radarStation.setElevation(2.4);
-        radarService.drawEquivalentRadius(radarStation);
 
 
         // 2.读取雷达站点基础经纬度数据
@@ -77,7 +83,7 @@ public class RadarServiceTest {
         // 2.已知四参数 new RadarStation 对象
         RadarStation radarStation = new RadarStation(lon,lat,height,radius);
         // 3.根据雷达站点绘制雷达最大仰角图
-        BufferedImage bufferedImage = radarService.drawRadarMaxElevation(radarStation);
+        BufferedImage bufferedImage = radarService.drawRadarMaxElevation(radarStation,false);
         try {
             ImageIO.write(bufferedImage, "png", new File("E:/Project/2019/9test/test1.png"));
         } catch (IOException e) {

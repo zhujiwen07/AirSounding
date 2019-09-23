@@ -1,5 +1,7 @@
 package www.cnr7.com.bean;
 
+import java.math.BigDecimal;
+
 /**
  * @Author zhujiwen
  * @Date 星期三 2019-09-11 14:39
@@ -27,6 +29,9 @@ public class RadarStation {
 
     // 雷达仰角
     private double elevation;
+
+    public RadarStation() {
+    }
 
     public RadarStation(double lon, double lat, double height, double radius) {
         this.lon = lon;
@@ -97,5 +102,21 @@ public class RadarStation {
 
     public void setElevation(double elevation) {
         this.elevation = elevation;
+    }
+
+    public String toMaxElevationString() {
+        return "坐标（" + saveOneBit(lon,2) + "," + saveOneBit(lat,2) + "）" + "扫描半径：" + radius / 1000d + "km 雷达高度：" + height + "m";
+    }
+
+    /**
+     * 保留N位小数,进行四舍五入
+     * @param d
+     * @param length
+     * @return
+     */
+    public static Double saveOneBit(Double d, int length){
+        BigDecimal bd = new BigDecimal(d);
+        Double tem = bd.setScale(length,BigDecimal.ROUND_HALF_UP).doubleValue();
+        return tem;
     }
 }
