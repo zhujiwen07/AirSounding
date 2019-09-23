@@ -235,9 +235,9 @@ public class RadarServiceImpl implements RadarService {
         RadarConf.EquivalentRadius.circularX = RadarConf.EquivalentRadius.width / 2;
         RadarConf.EquivalentRadius.circularY = RadarConf.EquivalentRadius.height / 2;
         RadarConf.EquivalentRadius.maxRadius = RadarConf.EquivalentRadius.height / 2.0d - RadarConf.EquivalentRadius.height * 0.1d;
-        for (int i = 0; i < radius.length; i++) {
+        /*for (int i = 0; i < radius.length; i++) {
             System.out.println(radius[i] / 1000);
-        }
+        }*/
         for (int i = radius.length - 1; i >= 0; i--) {
             graphics2D.setColor(RadarConf.EquivalentRadius.toolBar[i]);
             int r = (int) Math.round(radius[i] / radarStation.getRadius() * RadarConf.EquivalentRadius.maxRadius);
