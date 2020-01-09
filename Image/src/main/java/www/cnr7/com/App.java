@@ -20,8 +20,8 @@ public class App
         File distfile = new File("G:\\12.jpg");
 
         System.out.println("压缩前图片大小：" + srcfile.length());
-        reduceImg("G:\\11.jpg", "G:\\12.jpg", 150, 200, null);
-        System.out.println("压缩后图片大小：" + distfile.length());
+        /*reduceImg("G:\\11.jpg", "G:\\12.jpg", 150, 200, null);
+        System.out.println("压缩后图片大小：" + distfile.length());*/
     }
 
     /**
